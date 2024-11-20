@@ -1,0 +1,27 @@
+{
+  "Docker":
+  {
+    "grobid": {
+      "tag": "grobid/grobid:0.8.0",
+      "container": {}
+    },
+    "softcite": {
+      "tag": "grobid/software-mentions:0.8.0",
+      "container": {}
+    }
+  },
+  "Client": {
+        "Grobid_client": {
+            "repository": "../grobid_client_python"
+        },
+        "Softcite_client": {
+            "repository": "../software_mentions_client"
+        },
+        "SOFTware-Sync": {
+            "repository": "../SOFTware-Sync"
+        },
+        "SOFTware-Viz": {
+            "repository": "../SOFTware-Sync"
+        }
+    }
+}
