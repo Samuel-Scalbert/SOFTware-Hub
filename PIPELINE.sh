@@ -11,51 +11,67 @@ fi
 # Step 2: Navigate to the Grobid client directory and install it
 cd grobid_client_python/
 echo "Installing Grobid Client..."
-python3 setup.py install
+python3 setup.py install > /dev/null 2>&1
 
-# Step 3: Run Grobid Client
-echo "Running Grobid Client"
-result_grobid1=$(grobid_client --input ../data/pdf_files/ --output ../data/xml_grobid/ processFulltextDocument)
-echo "$result_grobid1"
+# Step 3: Run Grobid Client in a loop
+while true; do
+    echo "Running Grobid Client"
+    result_grobid=$(grobid_client --input ./data/pdf_files/ --output ./data/xml_grobid/ processFulltextDocument)
+    echo "$result_grobid"
 
-# Step 4: Prompt user to rerun Grobid Client if needed
-read -p "Do you need to rerun Grobid? (y/n): " user_input
-if [[ "$user_input" == "y" ]]; then
-    echo "Re-running Grobid Client..."
-    result_grobid2=$(grobid_client --input ../data/pdf_files/ --output ../data/xml_grobid/ processFulltextDocument)
-    echo "$result_grobid2"
-elif [[ "$user_input" == "n" ]]; then
-    echo "Skipping Grobid rerun."
-else
-    echo "Invalid input. Please type 'y' or 'n'."
-fi
+    read -p "Are you satisfied with the Grobid result? (y/n): " grobid_input
+    if [[ "$grobid_input" == "y" ]]; then
+        echo "Proceeding with the next step."
+        break
+    elif [[ "$grobid_input" == "n" ]]; then
+        echo "Re-running Grobid Client..."
+    else
+        echo "Invalid input. Please type 'y' or 'n'."
+    fi
+done
 
-# Step 5: Navigate back to the main directory and move XML files
-cd ..
+# Step 4: Organize XML files
 echo "Organizing XML files..."
 cp ./data/xml_grobid/*.xml ./data/xml_files/
 cp ./data/xml_grobid/*.xml ./data/json_files/from_xml/
 
-# Step 6: Activate virtual environment for Software Mentions Client
+# Step 5: Activate virtual environment for Software Mentions Client
 echo "Activating virtual environment for Software Mentions Client..."
 source ./software_mentions_client/venv/bin/activate
 
-# Step 7: Navigate to the Software Mentions Client directory and run it
+# Step 6: Navigate to the Software Mentions Client directory and install it
 cd software_mentions_client/
-echo "Running Software Mentions Client..."
-result_softcite1=$(python3 -m software_mentions_client.client --repo-in ../data/json_files/from_xml/ --scorched-earth)
-echo "$result_softcite1"
+python3 -m pip install -e . > /dev/null 2>&1
 
-# Step 8: Prompt user to rerun Software Mentions Client if needed
-read -p "Do you need to rerun Software Mentions Client? (y/n): " user_input2
-if [[ "$user_input2" == "y" ]]; then
-    echo "Re-running Software Mentions Client..."
-    result_softcite2=$(python3 -m software_mentions_client.client --repo-in ../data/json_files/from_xml/ --scorched-earth --reprocess)
-    echo "$result_softcite2"
-elif [[ "$user_input2" == "n" ]]; then
-    echo "Skipping Software Mentions Client rerun."
-else
-    echo "Invalid input. Please type 'y' or 'n'."
-fi
+# Initialize 'processed' variable
+processed="n"
 
-echo "Script completed successfully."
+# Step 7: Run Software Mentions Client in a loop
+while true; do
+    echo "Running Software Mentions Client..."
+    if [[ "$processed" == "n" ]]; then
+        # First run without --reprocess
+        result_softcite=$(python3 -m software_mentions_client.client --repo-in ../data/json_files/from_xml/ --scorched-earth)
+        echo "$result_softcite"
+        processed="y"  # Mark as processed
+    elif [[ "$processed" == "y" ]]; then
+        # Second run with --reprocess
+        result_softcite=$(python3 -m software_mentions_client.client --repo-in ../data/json_files/from_xml/ --scorched-earth --reprocess)
+        echo "$result_softcite"
+    fi
+
+    # Ask if the user is satisfied with the result
+    read -p "Are you satisfied with the Software Mentions Client result? (y/n): " softcite_input
+    if [[ "$softcite_input" == "y" ]]; then
+        echo "Proceeding to the end of the pipeline."
+        break  # Exit the loop if the user is satisfied
+    elif [[ "$softcite_input" == "n" ]]; then
+        echo "Re-running Software Mentions Client..."
+        processed="n"  # Reset processed flag to run the client again
+    else
+        echo "Invalid input. Please type 'y' or 'n'."
+    fi
+done
+
+
+echo "Pipeline completed successfully."
