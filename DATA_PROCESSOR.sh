@@ -10,7 +10,7 @@ python3 setup.py install > /dev/null 2>&1
 # Step 3: Run Grobid Client in a loop
 while true ; do
     echo "Running Grobid Client"
-    result_grobid=$(grobid_client --input ../data/pdf_files/ --output ../data/xml_grobid/ processFulltextDocument)
+    result_grobid=$(grobid_client --input ../data/pdf_files/ --output ../data/xml_grobid/ processFulltextDocument --force)
     echo "$result_grobid"
 
     read -p "Are you satisfied with the Grobid result? (y/n): " grobid_input
