@@ -1,22 +1,16 @@
 #!/bin/bash
 
-# Ensure the script exits on error
-set -e
-
 # Step 1: Deactivate any active virtual environments
-if [[ "$VIRTUAL_ENV" != "" ]]; then
-    deactivate
-fi
 
 # Step 2: Navigate to the Grobid client directory and install it
-cd grobid_client_python/
+cd ../grobid_client_python/
 echo "Installing Grobid Client..."
 python3 setup.py install > /dev/null 2>&1
 
 # Step 3: Run Grobid Client in a loop
-while true; do
+while true ; do
     echo "Running Grobid Client"
-    result_grobid=$(grobid_client --input ./data/pdf_files/ --output ./data/xml_grobid/ processFulltextDocument)
+    result_grobid=$(grobid_client --input ../data/pdf_files/ --output ../data/xml_grobid/ processFulltextDocument)
     echo "$result_grobid"
 
     read -p "Are you satisfied with the Grobid result? (y/n): " grobid_input
@@ -32,6 +26,7 @@ done
 
 # Step 4: Organize XML files
 echo "Organizing XML files..."
+cd ..
 cp ./data/xml_grobid/*.xml ./data/xml_files/
 cp ./data/xml_grobid/*.xml ./data/json_files/from_xml/
 
@@ -73,5 +68,9 @@ while true; do
     fi
 done
 
+echo "Launching SOFTware-Viz (light by default)"
 
-echo "Pipeline completed successfully."
+source ../SOFTware-Viz-Light/venv/bin/activate
+cp ../data/xml_files/*.xml ../SOFTware-Viz-Light/app/static/data/xml_files/
+cp ../data/json_files/from_xml/*.json ../SOFTware-Viz-Light/app/static/data/json_files/from_xml/
+python ../SOFTware-Viz-Light/run.py
